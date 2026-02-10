@@ -19,8 +19,8 @@ EC2/RDS/S3/ELB, Nginx, Git
 
 ### Team Members:
 - Anass Ehab Einshouka (Team Leader)
-- 
-- 
-- 
+- Ahmed Mohamed Ammar
+- Ibrahim Abduallah Ibrahim Abdullah
+- Tawfiq Hashim Eleiba
 
 **Drive Link:** https://drive.google.com/drive/folders/1CYUtoOsrawu0k7PVl73ta4plA-3AS9pb?usp=sharing
