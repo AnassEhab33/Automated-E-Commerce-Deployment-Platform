@@ -66,18 +66,18 @@ INSERT INTO categories (id, name, description) VALUES
 
 -- Seed products
 INSERT INTO products (name, description, price, stock, category_id, image_url) VALUES
-('iPhone 15 Pro', 'Latest Apple flagship with titanium design and A17 Pro chip', 999.99, 50, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'https://images.unsplash.com/photo-1696426073066-bd4ca8e02011?w=400'),
-('Samsung Galaxy S24', 'Android powerhouse with AI features and 200MP camera', 849.99, 75, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'https://images.unsplash.com/photo-1707512169720-a426d5df5a6e?w=400'),
-('MacBook Air M3', '13-inch with M3 chip, 18-hour battery life', 1299.99, 30, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=400'),
-('Sony WH-1000XM5', 'Industry-leading noise canceling wireless headphones', 349.99, 100, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400'),
-('Nike Air Max 270', 'Comfortable running shoes with Max Air cushioning', 149.99, 200, 'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400'),
-('Levi''s 501 Jeans', 'Classic straight fit jeans, timeless style', 59.99, 150, 'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400'),
-('Adidas Ultraboost 23', 'High-performance running shoe with Boost midsole', 189.99, 120, 'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'https://images.unsplash.com/photo-1608231387042-66d1773d3028?w=400'),
-('Instant Pot Duo 7-in-1', 'Multi-use pressure cooker, slow cooker, rice cooker', 89.99, 80, 'c3d4e5f6-a7b8-9012-cdef-123456789012', 'https://images.unsplash.com/photo-1585515320310-259814833e62?w=400'),
-('Dyson V15 Detect', 'Powerful cordless vacuum with laser dust detection', 699.99, 40, 'c3d4e5f6-a7b8-9012-cdef-123456789012', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'),
-('The Clean Coder', 'A Code of Conduct for Professional Programmers by Robert Martin', 29.99, 500, 'd4e5f6a7-b8c9-0123-defa-234567890123', 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400'),
-('Atomic Habits', 'Tiny Changes, Remarkable Results by James Clear', 19.99, 400, 'd4e5f6a7-b8c9-0123-defa-234567890123', 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400'),
-('Yoga Mat Pro', 'Non-slip professional yoga mat, 6mm thickness', 49.99, 300, 'e5f6a7b8-c9d0-1234-efab-345678901234', 'https://images.unsplash.com/photo-1601925229001-acc3f3c78fc4?w=400');
+('iPhone 15 Pro', 'Latest Apple flagship with titanium design and A17 Pro chip', 999.99, 50, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'https://images.unsplash.com/photo-1592750945-d02208cce297?w=400&q=80'),
+('Samsung Galaxy S24', 'Android powerhouse with AI features and 200MP camera', 849.99, 75, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&q=80'),
+('MacBook Air M3', '13-inch with M3 chip, 18-hour battery life', 1299.99, 30, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80'),
+('Sony WH-1000XM5', 'Industry-leading noise canceling wireless headphones', 349.99, 100, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80'),
+('Nike Air Max 270', 'Comfortable running shoes with Max Air cushioning', 149.99, 200, 'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80'),
+('Levi''s 501 Jeans', 'Classic straight fit jeans, timeless style', 59.99, 150, 'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80'),
+('Adidas Ultraboost 23', 'High-performance running shoe with Boost midsole', 189.99, 120, 'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'https://images.unsplash.com/photo-1556906781-9b8f00a9c5b3?w=400&q=80'),
+('Instant Pot Duo 7-in-1', 'Multi-use pressure cooker, slow cooker, rice cooker', 89.99, 80, 'c3d4e5f6-a7b8-9012-cdef-123456789012', 'https://images.unsplash.com/photo-1556909114-f6e7ad4f3e28?w=400&q=80'),
+('Dyson V15 Detect', 'Powerful cordless vacuum with laser dust detection', 699.99, 40, 'c3d4e5f6-a7b8-9012-cdef-123456789012', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80'),
+('The Clean Coder', 'A Code of Conduct for Professional Programmers by Robert Martin', 29.99, 500, 'd4e5f6a7-b8c9-0123-defa-234567890123', 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80'),
+('Atomic Habits', 'Tiny Changes, Remarkable Results by James Clear', 19.99, 400, 'd4e5f6a7-b8c9-0123-defa-234567890123', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&q=80'),
+('Yoga Mat Pro', 'Non-slip professional yoga mat, 6mm thickness', 49.99, 300, 'e5f6a7b8-c9d0-1234-efab-345678901234', 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80');
 
 -- ─────────────────────────────────────────
 -- ORDERS DATABASE
