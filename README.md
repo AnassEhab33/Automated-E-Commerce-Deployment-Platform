@@ -7,22 +7,22 @@ Built as the application layer of the **Automated E-Commerce Deployment Platform
 
 ```
                         ┌─────────────────┐
-                        │   Browser/User   │
-                        └────────┬─────────┘
+                        │   Browser/User  │
+                        └────────┬────────┘
                                  │
                         ┌────────▼─────────┐
-                        │  Nginx (Port 80)  │  ← API Gateway
+                        │  Nginx (Port 80) │  ← API Gateway
                         └────────┬─────────┘
                                  │
-        ┌──────────┬─────────────┼─────────────┬──────────────┐
-        │          │             │             │              │
+        ┌──────────┬─────────────┼───────────┬──────────────┐
+        │          │             │           │              │
    ┌────▼────┐ ┌───▼──────┐ ┌───▼────┐ ┌─────▼───┐ ┌────────▼──────┐
    │  user-  │ │ product- │ │ cart-  │ │ order-  │ │  payment-     │
    │ service │ │ service  │ │service │ │ service │ │  service      │
    │ :3001   │ │  :3002   │ │ :3003  │ │  :3004  │ │  :3005        │
    │Node.js  │ │  FastAPI │ │Node.js │ │ Node.js │ │  FastAPI      │
    └────┬────┘ └───┬──────┘ └───┬────┘ └─────┬───┘ └───────────────┘
-        │          │             │             │
+        │          │            │            │
    ┌────▼────┐ ┌───▼──────┐ ┌───▼────┐ ┌─────▼───┐
    │Postgres │ │Postgres  │ │ Redis  │ │Postgres │
    │users_db │ │products  │ │ Cache  │ │orders_db│
