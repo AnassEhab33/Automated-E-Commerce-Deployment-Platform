@@ -6,38 +6,7 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
-    // stages {
-
-    //     stage('Checkout') {
-    //         steps {
-    //             checkout scm
-    //         }
-    //     }
-
-    //     stage('Test') {
-    //         steps {
-    //             sh '''
-    //                 echo "Running Tests..."
-
-    //                 cd services/cart-service && npm install && npm test || true
-    //                 cd ../../
-
-    //                 cd services/order-service && npm install && npm test || true
-    //                 cd ../../
-
-    //                 cd services/payment-service && npm install && npm test || true
-    //                 cd ../../
-
-    //                 cd services/product-service && npm install && npm test || true
-    //                 cd ../../
-
-    //                 cd services/user-service && npm install && npm test || true
-    //                 cd ../../
-
-    //                 echo "Tests Finished"
-    //             '''
-    //         }
-    //     }
+    stages {
 
         stage('Build Docker Images') {
             steps {
@@ -81,13 +50,13 @@ pipeline {
 
     post {
         success {
-            echo 'Build + Test + Deploy DONE BY TAWFIQ ELEIBA '
+            echo 'Build + Deploy DONE'
 
             sh """
                 docker rmi ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} || true
                 docker rmi ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} || true
                 docker rmi ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} || true
-                docker rmi ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} || true
+                docker rmi ${DOCKER_HUB}/automated-e-commerce-product}:${IMAGE_TAG} || true
                 docker rmi ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} || true
             """
         }
