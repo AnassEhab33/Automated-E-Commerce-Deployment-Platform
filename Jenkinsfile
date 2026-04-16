@@ -1,13 +1,10 @@
 pipeline {
     agent any
-
     environment {
         DOCKER_HUB = 'tawfiqeleiba'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
-
     stages {
-
         stage('Build Docker Images') {
             steps {
                 sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} ./services/cart-service"
@@ -17,7 +14,6 @@ pipeline {
                 sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} ./services/user-service"
             }
         }
-
         stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
@@ -29,7 +25,6 @@ pipeline {
                 }
             }
         }
-
         stage('Push Images') {
             steps {
                 sh "docker push ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG}"
@@ -39,7 +34,6 @@ pipeline {
                 sh "docker push ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG}"
             }
         }
-
         stage('Deploy') {
             steps {
                 sh 'docker compose down || true'
@@ -47,16 +41,14 @@ pipeline {
             }
         }
     }
-
     post {
         success {
             echo 'Build + Deploy DONE'
-
             sh """
                 docker rmi ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} || true
                 docker rmi ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} || true
                 docker rmi ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} || true
-                docker rmi ${DOCKER_HUB}/automated-e-commerce-product}:${IMAGE_TAG} || true
+                docker rmi ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} || true
                 docker rmi ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} || true
             """
         }
