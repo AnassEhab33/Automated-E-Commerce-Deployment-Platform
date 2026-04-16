@@ -1,65 +1,51 @@
 pipeline {
-    agent any
-
-    environment {
-        DOCKER_HUB = 'tawfiqeleiba'
-        IMAGE_TAG = "${BUILD_NUMBER}"
-    }
+    agent any 
 
     stages {
-
-        stage('Checkout') {
+        stage('Build Microservices') {
             steps {
-                checkout scm
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} ./services/cart-service"
-                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} ./services/order-service"
-                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} ./services/payment-service"
-                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} ./services/product-service"
-                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} ./services/user-service"
-            }
-        }
-
-        stage('Login to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                script {
+                    // بناء الـ 5 صور بناءً على المسارات في مشروعك
+                    sh 'docker build -t tawfiqeleiba/automated-e-commerce-cart:1 ./services/cart-service'
+                    sh 'docker build -t tawfiqeleiba/automated-e-commerce-order:1 ./services/order-service'
+                    sh 'docker build -t tawfiqeleiba/automated-e-commerce-payment:1 ./services/payment-service'
+                    sh 'docker build -t tawfiqeleiba/automated-e-commerce-product:1 ./services/product-service'
+                    sh 'docker build -t tawfiqeleiba/automated-e-commerce-user:1 ./services/user-service'
                 }
             }
         }
 
-        stage('Push Images') {
+        stage('Run Tests') {
             steps {
-                sh "docker push ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG}"
-                sh "docker push ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG}"
-                sh "docker push ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG}"
-                sh "docker push ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG}"
-                sh "docker push ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG}"
+                script {
+                    // تشغيل التست لكل خدمة (بما أنها Node.js كما في الصورة)
+                    sh 'docker run -e CI=true tawfiqeleiba/automated-e-commerce-cart:1 npm test'
+                    // يمكنك إضافة بقية التستات هنا بنفس الطريقة
+                }
+            }
+        }
+
+        stage('Push to Artifactory') {
+            steps {
+                script {
+                    // هنا يتم رفع الصور (تأكد من عمل docker login أولاً في سيرفر جنكنز)
+                    sh 'docker push tawfiqeleiba/automated-e-commerce-cart:1'
+                    sh 'docker push tawfiqeleiba/automated-e-commerce-order:1'
+                    sh 'docker push tawfiqeleiba/automated-e-commerce-payment:1'
+                    sh 'docker push tawfiqeleiba/automated-e-commerce-product:1'
+                    sh 'docker push tawfiqeleiba/automated-e-commerce-user:1'
+                }
             }
         }
 
         stage('Deploy') {
             steps {
-                sh 'docker compose down || true'
-                sh 'docker compose up -d'
+                script {
+                    // تشغيل المشروع بالكامل باستخدام docker-compose
+                    sh 'docker-compose up -d'
+                }
             }
         }
     }
-
-    post {
-        success {
-            echo 'Build, Push, Deploy DONE ✅'
-            sh """
-            docker rmi ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} || true
-            docker rmi ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} || true
-            docker rmi ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} || true
-            docker rmi ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} || true
-            docker rmi ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} || true
-            """
-        }
-    }
 }
+
