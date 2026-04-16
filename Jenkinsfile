@@ -22,6 +22,19 @@ pipeline {
             }
         }
 
+        // ✅ مهم: login قبل أي docker build
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-cred',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                }
+            }
+        }
+
         stage('Build Docker Images') {
             steps {
                 script {
@@ -43,18 +56,6 @@ pipeline {
             }
         }
 
-        stage('Login to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker-cred',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
-                )]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
-                }
-            }
-        }
-
         stage('Push Images') {
             steps {
                 script {
@@ -72,13 +73,12 @@ pipeline {
             }
         }
 
-        // 🔥 (اختياري) Deploy باستخدام Docker Compose
         stage('Deploy') {
             steps {
                 sh """
-                docker-compose down || true
-                docker-compose pull
-                docker-compose up -d
+                docker compose down || true
+                docker compose pull
+                docker compose up -d
                 """
             }
         }
@@ -97,6 +97,10 @@ pipeline {
 
         failure {
             echo '❌ Pipeline failed!'
+        }
+
+        always {
+            sh "docker logout || true"
         }
     }
 }
