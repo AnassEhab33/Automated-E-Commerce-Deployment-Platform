@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_HUB = 'tawfiqeleiba'
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        IMAGE_TAG = "${env.BUILD_NUMBER}-${env.BRANCH_NAME?.replaceAll('/', '-')}"
         SERVICES = "cart-service order-service payment-service product-service user-service"
     }
 
@@ -14,7 +14,7 @@ pipeline {
                 script {
                     for (s in SERVICES.split()) {
                         dir("services/${s}") {
-                            sh "npm install"
+                            sh "npm install --no-audit --no-fund"
                             sh "npm run test --if-present"
                         }
                     }
@@ -22,7 +22,6 @@ pipeline {
             }
         }
 
-        // ✅ مهم: login قبل أي docker build
         stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
@@ -43,7 +42,7 @@ pipeline {
                     for (s in SERVICES.split()) {
                         builds[s] = {
                             sh """
-                            docker build \
+                            docker build --no-cache \
                             -t ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG} \
                             -t ${DOCKER_HUB}/automated-e-commerce-${s}:latest \
                             ./services/${s}
@@ -51,7 +50,7 @@ pipeline {
                         }
                     }
 
-                    parallel builds
+                    parallel builds, failFast: true
                 }
             }
         }
@@ -63,12 +62,14 @@ pipeline {
 
                     for (s in SERVICES.split()) {
                         pushes[s] = {
-                            sh "docker push ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG}"
-                            sh "docker push ${DOCKER_HUB}/automated-e-commerce-${s}:latest"
+                            sh """
+                            docker push ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG}
+                            docker push ${DOCKER_HUB}/automated-e-commerce-${s}:latest
+                            """
                         }
                     }
 
-                    parallel pushes
+                    parallel pushes, failFast: true
                 }
             }
         }
@@ -76,9 +77,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh """
-                docker compose down || true
-                docker compose pull
-                docker compose up -d
+                docker compose up -d --build
                 """
             }
         }
@@ -87,12 +86,6 @@ pipeline {
     post {
         success {
             echo '✅ Pipeline completed successfully!'
-
-            script {
-                for (s in SERVICES.split()) {
-                    sh "docker rmi ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG} || true"
-                }
-            }
         }
 
         failure {
