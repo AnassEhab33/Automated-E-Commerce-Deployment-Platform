@@ -3,54 +3,27 @@ pipeline {
 
     environment {
         DOCKER_HUB = 'tawfiqeleiba'
-        IMAGE_TAG = "${env.BUILD_NUMBER}-${env.BRANCH_NAME?.replaceAll('/', '-')}"
-        SERVICES = "cart-service order-service payment-service product-service user-service"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
 
-        stage('Run Tests') {
+        stage('Build Docker Images') {
             steps {
                 script {
-                    for (s in SERVICES.split()) {
-                        dir("services/${s}") {
-                            sh "npm install --no-audit --no-fund"
-                            sh "npm run test --if-present"
-                        }
-                    }
+                    sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} ./services/cart-service"
+                    sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} ./services/order-service"
+                    sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} ./services/payment-service"
+                    sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} ./services/product-service"
+                    sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} ./services/user-service"
                 }
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker-cred',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
-                )]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh 'echo $PASS | docker login -u $USER --password-stdin'
-                }
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                script {
-                    def builds = [:]
-
-                    for (s in SERVICES.split()) {
-                        builds[s] = {
-                            sh """
-                            docker build --no-cache \
-                            -t ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG} \
-                            -t ${DOCKER_HUB}/automated-e-commerce-${s}:latest \
-                            ./services/${s}
-                            """
-                        }
-                    }
-
-                    parallel builds, failFast: true
                 }
             }
         }
@@ -58,42 +31,99 @@ pipeline {
         stage('Push Images') {
             steps {
                 script {
-                    def pushes = [:]
-
-                    for (s in SERVICES.split()) {
-                        pushes[s] = {
-                            sh """
-                            docker push ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG}
-                            docker push ${DOCKER_HUB}/automated-e-commerce-${s}:latest
-                            """
-                        }
-                    }
-
-                    parallel pushes, failFast: true
+                    sh "docker push ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG}"
+                    sh "docker push ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG}"
+                    sh "docker push ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG}"
+                    sh "docker push ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG}"
+                    sh "docker push ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG}"
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                sh """
-                docker compose up -d --build
-                """
+                sh 'docker-compose down || true'
+                sh 'docker-compose up -d'
+            }
+        }
+    }
+
+    post {pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB = 'tawfiqeleiba'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} ./services/cart-service"
+                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} ./services/order-service"
+                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} ./services/payment-service"
+                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} ./services/product-service"
+                sh "docker build -t ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} ./services/user-service"
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Images') {
+            steps {
+                sh "docker push ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG}"
+                sh "docker push ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG}"
+                sh "docker push ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG}"
+                sh "docker push ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG}"
+                sh "docker push ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG}"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker compose down || true'
+                sh 'docker compose up -d'
             }
         }
     }
 
     post {
         success {
-            echo '✅ Pipeline completed successfully!'
-        }
+            echo 'Build, Push, Deploy DONE ✅'
 
-        failure {
-            echo '❌ Pipeline failed!'
+            sh """
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} || true
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} || true
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} || true
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} || true
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} || true
+            """
         }
+    }
+}
+        success {
+            echo 'Build, Push, Deploy DONE ✅'
 
-        always {
-            sh "docker logout || true"
+            sh """
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} || true
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} || true
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} || true
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} || true
+            docker rmi ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} || true
+            """
         }
     }
 }
