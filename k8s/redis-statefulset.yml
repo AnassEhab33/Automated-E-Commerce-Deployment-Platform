@@ -1,0 +1,65 @@
+---
+# 1. Headless Service (Required to give the StatefulSet a stable network ID)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: ecommerce
+spec:
+  ports:
+    - port: 6379
+  clusterIP: None # Makes it headless
+  selector:
+    app: redis
+
+---
+# 2. The StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: ecommerce
+spec:
+  serviceName: "redis"
+  replicas: 1 # Number of database nodes
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+
+          # Pulling the credentials we set up earlier!
+          env:
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: ecommerce-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: ecommerce-config
+                  key: REDIS_PORT
+
+          # This tells the container WHERE to plug in the permanent hard drive
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+
+  # 3. Persistent Volume Claim (Requesting the Hard Drive)
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes: ["ReadWriteOnce"] # Only this pod can read/write to it
+        resources:
+          requests:
+            storage: 1Gi # Ask Kubernetes for a 1 Gigabyte disk

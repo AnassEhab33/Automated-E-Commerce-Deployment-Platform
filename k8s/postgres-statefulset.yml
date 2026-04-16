@@ -1,0 +1,72 @@
+---
+# 1. Headless Service (Required to give the StatefulSet a stable network ID)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: ecommerce
+spec:
+  ports:
+    - port: 5432
+  clusterIP: None # Makes it headless
+  selector:
+    app: postgres
+
+---
+# 2. The StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: ecommerce
+spec:
+  serviceName: "postgres"
+  replicas: 1 # Number of database nodes
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+
+          # Pulling the credentials we set up earlier!
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: ecommerce-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: POSTGRES_PASSWORD
+
+          # This tells the container WHERE to plug in the permanent hard drive
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-init-script
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: init.sql
+      volumes:
+        - name: postgres-init-script
+          configMap:
+            name: postgres-init-script
+
+  # 3. Persistent Volume Claim (Requesting the Hard Drive)
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"] # Only this pod can read/write to it
+        resources:
+          requests:
+            storage: 1Gi # Ask Kubernetes for a 5 Gigabyte disk
