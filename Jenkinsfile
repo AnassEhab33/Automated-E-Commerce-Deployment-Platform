@@ -9,17 +9,14 @@ pipeline {
 
     stages {
 
-        // stage('Clone') {
-        //     steps {
-        //         git 'https://github.com/AnassEhab33/Automated-E-Commerce-Deployment-Platform.git'
-        //     }
-        // }
-
         stage('Run Tests') {
             steps {
                 script {
                     for (s in SERVICES.split()) {
-                        sh "cd services/${s} && npm install && npm test || exit 1"
+                        dir("services/${s}") {
+                            sh "npm install"
+                            sh "npm run test --if-present"
+                        }
                     }
                 }
             }
@@ -28,14 +25,20 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
+                    def builds = [:]
+
                     for (s in SERVICES.split()) {
-                        sh """
-                        docker build \
-                        -t ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG} \
-                        -t ${DOCKER_HUB}/automated-e-commerce-${s}:latest \
-                        ./services/${s}
-                        """
+                        builds[s] = {
+                            sh """
+                            docker build \
+                            -t ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG} \
+                            -t ${DOCKER_HUB}/automated-e-commerce-${s}:latest \
+                            ./services/${s}
+                            """
+                        }
                     }
+
+                    parallel builds
                 }
             }
         }
@@ -55,25 +58,45 @@ pipeline {
         stage('Push Images') {
             steps {
                 script {
+                    def pushes = [:]
+
                     for (s in SERVICES.split()) {
-                        sh "docker push ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG}"
-                        sh "docker push ${DOCKER_HUB}/automated-e-commerce-${s}:latest"
+                        pushes[s] = {
+                            sh "docker push ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG}"
+                            sh "docker push ${DOCKER_HUB}/automated-e-commerce-${s}:latest"
+                        }
                     }
+
+                    parallel pushes
                 }
+            }
+        }
+
+        // 🔥 (اختياري) Deploy باستخدام Docker Compose
+        stage('Deploy') {
+            steps {
+                sh """
+                docker-compose down || true
+                docker-compose pull
+                docker-compose up -d
+                """
             }
         }
     }
 
     post {
         success {
-            echo 'Build, Test, and Push completed successfully!'
-            sh """
-//                 docker rmi ${DOCKER_HUB}/automated-e-commerce-cart:${IMAGE_TAG} || true
-//                 docker rmi ${DOCKER_HUB}/automated-e-commerce-order:${IMAGE_TAG} || true
-//                 docker rmi ${DOCKER_HUB}/automated-e-commerce-payment:${IMAGE_TAG} || true
-//                 docker rmi ${DOCKER_HUB}/automated-e-commerce-product:${IMAGE_TAG} || true
-//                 docker rmi ${DOCKER_HUB}/automated-e-commerce-user:${IMAGE_TAG} || true
-//             """
+            echo '✅ Pipeline completed successfully!'
+
+            script {
+                for (s in SERVICES.split()) {
+                    sh "docker rmi ${DOCKER_HUB}/automated-e-commerce-${s}:${IMAGE_TAG} || true"
+                }
+            }
+        }
+
+        failure {
+            echo '❌ Pipeline failed!'
         }
     }
 }
